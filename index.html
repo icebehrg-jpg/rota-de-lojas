@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roteirizador Inteligente | CD - Barueri</title>
+    <title>Roteirizador Inteligente | Galpão Jobim</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
@@ -109,18 +109,20 @@
                 <span id="statusTexto">162 lojas · 50 grupos · 16 eixos direcionais</span>
             </div>
 
-            <!-- Corredor -->
-            <div class="relative min-w-[200px]">
-                <select id="corredorSelect"
-                    class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-4 py-2 pr-10 text-sm font-medium text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all cursor-pointer">
-                    <option value="">1. Escolha o Corredor</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+            <!-- Eixo dropdown (multi) -->
+            <div class="relative min-w-[220px]">
+                <button id="eixoDropdownBtn" type="button"
+                    class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 pr-10 text-sm font-medium text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all flex items-center justify-between text-left">
+                    <span id="eixoDropdownTexto" class="truncate pr-4">1. Escolha o(s) Eixo(s)</span>
+                    <i data-lucide="chevron-down"
+                        class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </button>
+                <div id="eixoDropdownOpcoes"
+                    class="hidden absolute left-0 right-0 mt-2 max-h-80 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl p-2 space-y-1 z-50">
                 </div>
             </div>
 
-            <!-- Grupo dropdown -->
+            <!-- Grupo dropdown (multi) -->
             <div class="relative min-w-[280px]">
                 <button id="grupoDropdownBtn" type="button" disabled
                     class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 pr-10 text-sm font-medium text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50 transition-all flex items-center justify-between text-left">
@@ -129,7 +131,7 @@
                         class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
                 </button>
                 <div id="grupoDropdownOpcoes"
-                    class="hidden absolute left-0 right-0 mt-2 max-h-72 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl p-2 space-y-1">
+                    class="hidden absolute left-0 right-0 mt-2 max-h-80 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl p-2 space-y-1 z-50">
                 </div>
             </div>
 
@@ -155,8 +157,7 @@
                 </div>
                 <h3 class="text-base font-semibold text-slate-700">Aguardando Seleção</h3>
                 <p class="text-xs text-slate-500 mt-1 max-w-[260px]">Selecione o <b>Corredor</b> e marque um ou mais
-                    <b>Grupos</b> para visualizar as rotas.
-                </p>
+                    <b>Grupos</b> para visualizar as rotas.</p>
             </div>
 
             <div id="resumoContainer" class="hidden flex-1 flex flex-col h-full overflow-hidden">
@@ -180,13 +181,21 @@
                         Traçar Todas as Rotas
                     </button>
                 </div>
+                <!-- Tabs eixo/grupo -->
+                <div id="resumoTabs" class="hidden flex gap-1 px-4 pt-3 pb-0 shrink-0 overflow-x-auto">
+                    <button id="tabVisaoGeral"
+                        class="tab-resumo-btn text-[10px] font-semibold px-3 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition shrink-0">Visão
+                        Geral</button>
+                    <button id="tabPorEixo"
+                        class="tab-resumo-btn text-[10px] font-semibold px-3 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition shrink-0">Por
+                        Eixo</button>
+                    <button id="tabItinerario"
+                        class="tab-resumo-btn active text-[10px] font-semibold px-3 py-1 rounded-lg bg-sky-500 text-white transition shrink-0">Itinerário</button>
+                </div>
                 <div class="flex-1 overflow-y-auto p-4 bg-slate-50/40">
-                    <h4
-                        class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-3">
-                        <i data-lucide="list-ordered" class="w-3.5 h-3.5"></i>
-                        Itinerário por Grupo
-                    </h4>
-                    <div id="listaLojasOrdem" class="space-y-4"></div>
+                    <div id="painelVisaoGeral" class="hidden space-y-3"></div>
+                    <div id="painelPorEixo" class="hidden space-y-4"></div>
+                    <div id="painelItinerario" class="space-y-4"></div>
                 </div>
             </div>
         </aside>
@@ -265,7 +274,7 @@
         // ═══════════════════════════════════════════
         // CONFIG
         // ═══════════════════════════════════════════
-        const ORIGEM_GALPAO = { lat: -23.4905, lng: -46.8836, nome: "CD - Barueri" };
+        const ORIGEM_GALPAO = { lat: -23.4905, lng: -46.8836, nome: "Galpão Jobim" };
         const SERVIDORES_ROTA = [
             'https://router.project-osrm.org/route/v1',
             'https://routing.openstreetmap.de/routed-car/route/v1'
@@ -315,8 +324,8 @@
             L.control.layers(camadasMapa, null, { position: 'topright', collapsed: false }).addTo(mapa);
             L.marker([ORIGEM_GALPAO.lat, ORIGEM_GALPAO.lng])
                 .addTo(mapa)
-                .bindPopup('<b>CD - Barueri</b><br>Ponto de partida')
-                .bindTooltip('CD - Barueri', { direction: 'top', sticky: true })
+                .bindPopup('<b>Galpão Jobim</b><br>Ponto de partida')
+                .bindTooltip('Galpão Jobim', { direction: 'top', sticky: true })
                 .openPopup();
         }
 
@@ -327,162 +336,419 @@
         }
 
         // ═══════════════════════════════════════════
-        // FILTROS DE CORREDOR E GRUPO
+        // FILTROS MULTI-EIXO + MULTI-GRUPO
         // ═══════════════════════════════════════════
-        function popularCorredores() {
-            const sel = document.getElementById('corredorSelect');
-            sel.innerHTML = '<option value="">1. Escolha o Corredor</option>';
-            const corredores = [...new Set(dadosPlanilha.map(i => i.Corredor))].filter(Boolean).sort();
-            corredores.forEach(c => {
-                const o = document.createElement('option');
-                o.value = c;
-                o.textContent = 'Corredor: ' + c;
-                sel.appendChild(o);
-            });
-            console.log('Corredores carregados:', corredores);
-        }
 
-        document.getElementById('corredorSelect').addEventListener('change', function () {
-            const cor = this.value;
-            const btn = document.getElementById('grupoDropdownBtn');
-            const cont = document.getElementById('grupoDropdownOpcoes');
-            const txt = document.getElementById('grupoDropdownTexto');
+        let eixosSelecionados = new Set();  // corredores selecionados
+        let gruposSelecionados = new Set(); // grupos selecionados
 
+        function popularEixos() {
+            const eixos = [...new Set(dadosPlanilha.map(i => i.Corredor))].filter(Boolean).sort();
+            const cont = document.getElementById('eixoDropdownOpcoes');
             cont.innerHTML = '';
-            txt.textContent = '2. Escolha os Grupos';
-            btn.disabled = true;
-            limparRotas();
-            resetSidebar();
 
-            if (!cor) return;
+            // Botão selecionar todos
+            const todos = document.createElement('div');
+            todos.className = 'flex items-center gap-2 px-2 py-1.5 border-b border-slate-100 mb-1';
+            todos.innerHTML = `<button id="btnTodosEixos" class="text-[10px] font-semibold text-sky-600 hover:underline">Todos</button>
+    <button id="btnNenhumEixo" class="text-[10px] font-semibold text-slate-400 hover:underline">Nenhum</button>`;
+            cont.appendChild(todos);
 
-            const lojasCor = dadosPlanilha.filter(i => i.Corredor === cor);
-            const gruposSet = [...new Set(lojasCor.map(i => i.Grupo))].filter(x => x !== null && x !== undefined);
-            const grupos = gruposSet.sort((a, b) => Number(a) - Number(b));
-
-            console.log('Corredor:', cor, '| Grupos:', grupos, '| Lojas:', lojasCor.length);
-
-            grupos.forEach(g => {
-                const lojas = lojasCor.filter(i => i.Grupo === g);
-                const carro = lojas[0]?.Carro || '';
-                const altura = lojas[0]?.Altura || '';
-                const nomes = lojas.map(l => l['Razao Social'] || 'Filial ' + l.Filial).slice(0, 3).join(' · ');
-
+            eixos.forEach(e => {
+                const n = dadosPlanilha.filter(i => i.Corredor === e).length;
                 const label = document.createElement('label');
-                label.className = 'flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors w-full';
+                label.className = 'flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors';
                 label.innerHTML = `
-      <input type="checkbox" value="${g}" class="grupo-checkbox mt-1 h-4 w-4 rounded border-slate-300 text-sky-600 shrink-0" />
+      <input type="checkbox" value="${e}" class="eixo-checkbox h-4 w-4 rounded border-slate-300 text-sky-600 shrink-0" />
       <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-2 mb-0.5">
-          <span class="text-xs font-bold text-slate-900">Grupo ${g}</span>
-          <span class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold" style="background:#e2e8f0;color:#334155">${carro}</span>
-          <span class="text-[10px] text-slate-400">${altura}</span>
-          <span class="text-[10px] text-slate-400 ml-auto">${lojas.length} lojas</span>
-        </div>
-        <p class="text-[11px] text-slate-400 truncate">${nomes}</p>
+        <p class="text-xs font-semibold text-slate-800 leading-tight">${e}</p>
+        <p class="text-[10px] text-slate-400">${n} lojas</p>
       </div>`;
-                label.querySelector('input').addEventListener('change', executarFiltro);
+                label.querySelector('input').addEventListener('change', onEixoChange);
                 cont.appendChild(label);
             });
 
+            document.getElementById('btnTodosEixos').addEventListener('click', e => {
+                e.stopPropagation();
+                cont.querySelectorAll('.eixo-checkbox').forEach(cb => { cb.checked = true; });
+                onEixoChange();
+            });
+            document.getElementById('btnNenhumEixo').addEventListener('click', e => {
+                e.stopPropagation();
+                cont.querySelectorAll('.eixo-checkbox').forEach(cb => { cb.checked = false; });
+                onEixoChange();
+            });
+        }
+
+        function onEixoChange() {
+            eixosSelecionados = new Set(
+                Array.from(document.querySelectorAll('.eixo-checkbox:checked')).map(cb => cb.value)
+            );
+            const txt = document.getElementById('eixoDropdownTexto');
+            txt.textContent = eixosSelecionados.size === 0
+                ? '1. Escolha o(s) Eixo(s)'
+                : eixosSelecionados.size + ' Eixo(s) Selecionado(s)';
+
+            popularGrupos();
+            executarFiltro();
+        }
+
+        function popularGrupos() {
+            const btn = document.getElementById('grupoDropdownBtn');
+            const cont = document.getElementById('grupoDropdownOpcoes');
+            const txt = document.getElementById('grupoDropdownTexto');
+            cont.innerHTML = '';
+            gruposSelecionados.clear();
+            txt.textContent = '2. Escolha os Grupos';
+
+            if (eixosSelecionados.size === 0) { btn.disabled = true; return; }
+
+            const lojasFiltradas = dadosPlanilha.filter(i => eixosSelecionados.has(i.Corredor));
+            const eixosOrdem = [...eixosSelecionados].sort();
+
+            // Botões rápidos
+            const todos = document.createElement('div');
+            todos.className = 'flex items-center gap-2 px-2 py-1.5 border-b border-slate-100 mb-1';
+            todos.innerHTML = `<button id="btnTodosGrupos" class="text-[10px] font-semibold text-sky-600 hover:underline">Todos</button>
+    <button id="btnNenhumGrupo" class="text-[10px] font-semibold text-slate-400 hover:underline">Nenhum</button>`;
+            cont.appendChild(todos);
+
+            // Agrupar por eixo
+            eixosOrdem.forEach(eixo => {
+                const lojasEixo = lojasFiltradas.filter(i => i.Corredor === eixo);
+                const grupos = [...new Set(lojasEixo.map(i => i.Grupo))].sort((a, b) => a - b);
+                if (grupos.length === 0) return;
+
+                // Header do eixo
+                const hdr = document.createElement('div');
+                hdr.className = 'px-2 pt-2 pb-0.5 text-[9px] font-bold text-slate-400 uppercase tracking-wider';
+                hdr.textContent = eixo;
+                cont.appendChild(hdr);
+
+                grupos.forEach(g => {
+                    const lojas = lojasEixo.filter(i => i.Grupo === g);
+                    const carro = lojas[0]?.Carro || '';
+                    const altura = lojas[0]?.Altura || '';
+                    const ufs = [...new Set(lojas.map(l => l.UF))].join('/');
+
+                    const label = document.createElement('label');
+                    label.className = 'flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors';
+                    label.innerHTML = `
+        <input type="checkbox" value="${g}" data-eixo="${eixo}" class="grupo-checkbox h-4 w-4 rounded border-slate-300 text-sky-600 shrink-0"/>
+        <div class="flex-1 min-w-0 flex items-center gap-1.5">
+          <span class="text-xs font-bold text-slate-800">G${g}</span>
+          <span class="text-[9px] px-1.5 py-0.5 rounded-full font-semibold shrink-0" style="background:#e2e8f0;color:#334155">${carro}</span>
+          <span class="text-[9px] text-slate-400 shrink-0">${altura}</span>
+          <span class="text-[9px] text-slate-300 ml-auto shrink-0">${ufs} · ${lojas.length}L</span>
+        </div>`;
+                    label.querySelector('input').addEventListener('change', onGrupoChange);
+                    cont.appendChild(label);
+                });
+            });
+
             btn.disabled = false;
-            lucide.createIcons();
-        });
+
+            document.getElementById('btnTodosGrupos').addEventListener('click', e => {
+                e.stopPropagation();
+                cont.querySelectorAll('.grupo-checkbox').forEach(cb => { cb.checked = true; });
+                onGrupoChange();
+            });
+            document.getElementById('btnNenhumGrupo').addEventListener('click', e => {
+                e.stopPropagation();
+                cont.querySelectorAll('.grupo-checkbox').forEach(cb => { cb.checked = false; });
+                onGrupoChange();
+            });
+        }
+
+        function onGrupoChange() {
+            gruposSelecionados = new Set(
+                Array.from(document.querySelectorAll('.grupo-checkbox:checked')).map(cb => Number(cb.value))
+            );
+            const n = gruposSelecionados.size;
+            document.getElementById('grupoDropdownTexto').textContent =
+                n === 0 ? '2. Escolha os Grupos' : n + ' Grupo(s)';
+            executarFiltro();
+        }
 
         function configurarDropdown() {
+            // Eixo dropdown
+            const btnE = document.getElementById('eixoDropdownBtn');
+            const opcE = document.getElementById('eixoDropdownOpcoes');
+            btnE.addEventListener('click', e => { e.stopPropagation(); opcE.classList.toggle('hidden'); document.getElementById('grupoDropdownOpcoes').classList.add('hidden'); });
+            opcE.addEventListener('click', e => e.stopPropagation());
+
+            // Grupo dropdown
             const btn = document.getElementById('grupoDropdownBtn');
             const opc = document.getElementById('grupoDropdownOpcoes');
-            btn.addEventListener('click', e => { e.stopPropagation(); opc.classList.toggle('hidden'); });
-            document.addEventListener('click', () => opc.classList.add('hidden'));
+            btn.addEventListener('click', e => { e.stopPropagation(); opc.classList.toggle('hidden'); opcE.classList.add('hidden'); });
             opc.addEventListener('click', e => e.stopPropagation());
+
+            document.addEventListener('click', () => {
+                opcE.classList.add('hidden');
+                opc.classList.add('hidden');
+            });
         }
 
         function executarFiltro() {
-            const cor = document.getElementById('corredorSelect').value;
-            const checked = Array.from(document.querySelectorAll('.grupo-checkbox:checked')).map(cb => Number(cb.value));
-            const txt = document.getElementById('grupoDropdownTexto');
+            if (gruposSelecionados.size === 0) { limparRotas(); resetSidebar(); return; }
 
-            if (checked.length === 0) {
-                txt.textContent = '2. Escolha os Grupos';
-                limparRotas(); resetSidebar(); return;
-            }
-            txt.textContent = checked.length + ' Grupo(s) Selecionado(s)';
+            // Montar dados agrupados por eixo → grupo
+            const eixosAtivos = [...eixosSelecionados].sort();
+            let dadosEixos = []; let totalLojas = 0; let corIdx = 0;
 
-            let grupos = []; let total = 0;
-            checked.forEach((g, idx) => {
-                const corObj = CORES_PALETA[idx % CORES_PALETA.length];
-                // Filtrar e ordenar pela ordem de parada otimizada (TSP)
-                let lojas = dadosPlanilha
-                    .filter(i => i.Corredor === cor && i.Grupo === g)
-                    .sort((a, b) => (a.OrdemParada || 0) - (b.OrdemParada || 0))
-                    .map(l => ({
-                        ...l,
-                        parsedLat: l.Latitude < 0 ? l.Latitude : -l.Latitude,
-                        parsedLng: l.Longitude < 0 ? l.Longitude : -l.Longitude,
-                        corHex: corObj.hex
-                    }));
-                total += lojas.length;
-                grupos.push({ nomeGrupo: g, corObj, lojas });
+            eixosAtivos.forEach(eixo => {
+                const lojasEixo = dadosPlanilha.filter(i => i.Corredor === eixo && gruposSelecionados.has(i.Grupo));
+                if (lojasEixo.length === 0) return;
+
+                const grupos = [...new Set(lojasEixo.map(i => i.Grupo))].sort((a, b) => a - b);
+                const dadosGrupos = grupos.map(g => {
+                    const corObj = CORES_PALETA[corIdx++ % CORES_PALETA.length];
+                    const lojas = lojasEixo
+                        .filter(i => i.Grupo === g)
+                        .sort((a, b) => (a.OrdemParada || 0) - (b.OrdemParada || 0))
+                        .map(l => ({
+                            ...l,
+                            parsedLat: l.Latitude < 0 ? l.Latitude : -l.Latitude,
+                            parsedLng: l.Longitude < 0 ? l.Longitude : -l.Longitude,
+                            corHex: corObj.hex
+                        }));
+                    totalLojas += lojas.length;
+                    return { nomeGrupo: g, corObj, lojas, eixo };
+                });
+                dadosEixos.push({ eixo, dadosGrupos });
             });
 
-            exibirSidebar(cor, grupos, total);
+            exibirSidebar(dadosEixos, totalLojas);
         }
 
         // ═══════════════════════════════════════════
         // SIDEBAR
         // ═══════════════════════════════════════════
-        function exibirSidebar(corredor, dadosGrupos, totalLojas) {
+        // ─── Estado das tabs
+        let _dadosEixosAtivos = [];
+
+        function exibirSidebar(dadosEixos, totalLojas) {
+            _dadosEixosAtivos = dadosEixos;
+
             document.getElementById('placeholderValidacao').classList.add('hidden');
             document.getElementById('resumoContainer').classList.remove('hidden');
-            document.getElementById('infoGrupoAtivo').textContent = 'Corredor: ' + corredor;
+            document.getElementById('resumoTabs').classList.remove('hidden');
+
+            const nEixos = dadosEixos.length;
+            const nGrupos = dadosEixos.reduce((s, e) => s + e.dadosGrupos.length, 0);
+            document.getElementById('infoGrupoAtivo').textContent =
+                nEixos + ' eixo' + (nEixos > 1 ? 's' : '') + ' · ' + nGrupos + ' grupo' + (nGrupos > 1 ? 's' : '');
             document.getElementById('totalLojas').textContent = totalLojas;
 
-            const lista = document.getElementById('listaLojasOrdem');
-            lista.innerHTML = '';
+            renderVisaoGeral(dadosEixos);
+            renderPorEixo(dadosEixos);
+            renderItinerario(dadosEixos);
 
-            dadosGrupos.forEach(grupo => {
-                const carro = grupo.lojas[0]?.Carro || '';
-                const altura = grupo.lojas[0]?.Altura || '';
-                const distTotal = grupo.lojas[0]?.DistRotaKm || 0;
-
-                let htmlLojas = '';
-                grupo.lojas.forEach((loja, i) => {
-                    const filial = loja['Filial'] || '';
-                    const nome = loja['Razao Social'] || 'Loja #' + (i + 1);
-                    const exib = filial ? filial + ' | ' + nome : nome;
-                    const end = loja.Endereco ? loja.Endereco.split('-')[0].trim() : '';
-                    const parada = loja.OrdemParada || (i + 1);
-                    htmlLojas += `
-        <div class="flex items-start gap-3 p-2.5 border-t border-slate-100 text-xs">
-          <span class="w-5 h-5 rounded-full text-white flex items-center justify-center text-[9px] font-bold shrink-0 mt-0.5" style="background-color:${grupo.corObj.hex}">${parada}</span>
-          <div class="flex-1 min-w-0">
-            <p class="font-bold text-slate-800 truncate">${exib}</p>
-            <p class="text-[10px] text-slate-400 truncate">${end}</p>
-          </div>
-        </div>`;
-                });
-
-                const sec = document.createElement('div');
-                sec.className = 'border border-slate-200 bg-white rounded-xl overflow-hidden shadow-sm';
-                sec.innerHTML = `
-      <div class="p-3 flex items-center justify-between text-white text-xs font-bold" style="background-color:${grupo.corObj.hex}">
-        <div class="flex items-center gap-2">
-          <span>Grupo ${grupo.nomeGrupo}</span>
-          <span class="bg-white/25 px-2 py-0.5 rounded-full text-[10px]">${carro} · ${altura}</span>
-        </div>
-        <div class="text-right">
-          <span class="block">${grupo.lojas.length} lojas</span>
-          <span class="text-[9px] opacity-75">${distTotal} km total</span>
-        </div>
-      </div>
-      <div class="divide-y divide-slate-100 max-h-56 overflow-y-auto">${htmlLojas}</div>`;
-                lista.appendChild(sec);
-            });
-
+            // Todos os grupos para traçar rota
+            const todosGrupos = dadosEixos.flatMap(e => e.dadosGrupos);
             document.getElementById('btnTracarRota').onclick = () => {
                 limparRotas();
-                dadosGrupos.forEach((g, i) => gerarRota(g.lojas, g.corObj.hex, g.nomeGrupo, i, dadosGrupos.length, 0));
+                todosGrupos.forEach((g, i) => gerarRota(g.lojas, g.corObj.hex, g.nomeGrupo, i, todosGrupos.length, 0));
             };
+        }
+
+        // ─── TAB 1: VISÃO GERAL — cards por eixo com resumo compacto
+        function renderVisaoGeral(dadosEixos) {
+            const painel = document.getElementById('painelVisaoGeral');
+            painel.innerHTML = '';
+
+            dadosEixos.forEach(({ eixo, dadosGrupos }) => {
+                const totalL = dadosGrupos.reduce((s, g) => s + g.lojas.length, 0);
+                const totalKm = dadosGrupos.reduce((s, g) => s + (g.lojas[0]?.DistRotaKm || 0), 0);
+                const ufs = [...new Set(dadosGrupos.flatMap(g => g.lojas.map(l => l.UF)))].sort().join(' · ');
+
+                const card = document.createElement('div');
+                card.className = 'bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm';
+
+                // Header eixo
+                let gruposHTML = dadosGrupos.map(g => {
+                    const c = g.lojas[0]?.Carro || '';
+                    const a = g.lojas[0]?.Altura || '';
+                    const km = g.lojas[0]?.DistRotaKm || 0;
+                    const filiais = g.lojas.map(l => l.Filial).join(' → ');
+                    return `<div class="flex items-center gap-2 py-2 border-t border-slate-100 text-xs grupo-item-visao" data-grupo="${g.nomeGrupo}">
+        <span class="w-6 h-6 rounded-lg text-white flex items-center justify-center text-[9px] font-black shrink-0" style="background:${g.corObj.hex}">G${g.nomeGrupo}</span>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5 mb-0.5">
+            <span class="font-semibold text-slate-700">${g.lojas.length} lojas</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded-full" style="background:#e2e8f0;color:#334155">${c}</span>
+            <span class="text-[9px] text-slate-400">${a}</span>
+            <span class="text-[9px] text-slate-300 ml-auto">${km} km</span>
+          </div>
+          <p class="text-[10px] text-slate-400 truncate">${filiais}</p>
+        </div>
+        <button class="btn-desmarcar-grupo ml-1 w-5 h-5 rounded-full bg-slate-100 hover:bg-red-100 hover:text-red-500 text-slate-400 flex items-center justify-center transition shrink-0" data-grupo="${g.nomeGrupo}" title="Remover grupo da seleção">
+          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`;
+                }).join('');
+
+                card.innerHTML = `
+      <div class="px-3 py-2.5 bg-slate-800 flex items-center justify-between">
+        <div class="flex-1 min-w-0">
+          <p class="text-[10px] font-bold text-white truncate">${eixo}</p>
+          <p class="text-[9px] text-slate-400 mt-0.5">${ufs}</p>
+        </div>
+        <div class="text-right shrink-0 ml-3">
+          <span class="text-sm font-black text-white">${totalL}</span>
+          <span class="text-[9px] text-slate-400 block">lojas · ${Math.round(totalKm)} km</span>
+        </div>
+      </div>
+      <div class="px-3 pb-1">${gruposHTML}</div>`;
+                painel.appendChild(card);
+
+                // Eventos ✕ desmarcar grupo
+                card.querySelectorAll('.btn-desmarcar-grupo').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        e.stopPropagation();
+                        const g = Number(btn.dataset.grupo);
+                        gruposSelecionados.delete(g);
+                        // Desmarcar checkbox no dropdown
+                        const cb = document.querySelector(`.grupo-checkbox[value="${g}"]`);
+                        if (cb) cb.checked = false;
+                        // Atualizar label do dropdown
+                        const n = gruposSelecionados.size;
+                        document.getElementById('grupoDropdownTexto').textContent =
+                            n === 0 ? '2. Escolha os Grupos' : n + ' Grupo(s)';
+                        executarFiltro();
+                    });
+                });
+            });
+        }
+
+        // ─── TAB 2: POR EIXO — detalhado com lojas expandíveis
+        function renderPorEixo(dadosEixos) {
+            const painel = document.getElementById('painelPorEixo');
+            painel.innerHTML = '';
+
+            dadosEixos.forEach(({ eixo, dadosGrupos }) => {
+                const sec = document.createElement('div');
+                sec.className = 'space-y-2';
+                sec.innerHTML = `<h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1">${eixo}</h4>`;
+
+                dadosGrupos.forEach(grupo => {
+                    const carro = grupo.lojas[0]?.Carro || '';
+                    const altura = grupo.lojas[0]?.Altura || '';
+                    const km = grupo.lojas[0]?.DistRotaKm || 0;
+                    const ufs = [...new Set(grupo.lojas.map(l => l.UF))].join('/');
+
+                    let lojasHTML = grupo.lojas.map((l, i) => {
+                        const nome = l['Razao Social'] || 'Loja ' + l.Filial;
+                        const end = l.Endereco ? l.Endereco.split('-')[0].trim() : '';
+                        return `<div class="flex items-start gap-2 py-1.5 border-t border-slate-100 text-xs">
+          <span class="w-4 h-4 rounded-full text-white flex items-center justify-center text-[8px] font-bold shrink-0 mt-0.5" style="background:${grupo.corObj.hex}">${l.OrdemParada || i + 1}</span>
+          <div class="min-w-0 flex-1">
+            <p class="font-semibold text-slate-700 truncate text-[11px]">${l.Filial} · ${nome}</p>
+            <p class="text-[9px] text-slate-400 truncate">${l.Cidade} · ${end}</p>
+          </div>
+        </div>`;
+                    }).join('');
+
+                    const card = document.createElement('div');
+                    card.className = 'border border-slate-200 bg-white rounded-xl overflow-hidden';
+                    card.innerHTML = `
+        <div class="flex items-center gap-2 px-3 py-2 cursor-pointer grupo-toggle" style="background:${grupo.corObj.hex}">
+          <span class="text-white text-xs font-black">G${grupo.nomeGrupo}</span>
+          <span class="bg-white/25 text-white text-[9px] px-1.5 py-0.5 rounded-full">${carro} · ${altura}</span>
+          <span class="bg-white/20 text-white text-[9px] px-1.5 py-0.5 rounded-full">${ufs}</span>
+          <div class="ml-auto text-right">
+            <span class="text-white text-[10px] font-bold">${grupo.lojas.length} lojas</span>
+            <span class="text-white/70 text-[9px] block">${km} km</span>
+          </div>
+          <svg class="w-3.5 h-3.5 text-white/70 transition-transform grupo-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="grupo-lojas px-3 pb-1 hidden">${lojasHTML}</div>`;
+                    card.querySelector('.grupo-toggle').addEventListener('click', () => {
+                        card.querySelector('.grupo-lojas').classList.toggle('hidden');
+                        card.querySelector('.grupo-chevron').style.transform =
+                            card.querySelector('.grupo-lojas').classList.contains('hidden') ? '' : 'rotate(180deg)';
+                    });
+                    sec.appendChild(card);
+                });
+                painel.appendChild(sec);
+            });
+        }
+
+        // ─── TAB 3: ITINERÁRIO — sequência completa de paradas
+        function renderItinerario(dadosEixos) {
+            const painel = document.getElementById('painelItinerario');
+            painel.innerHTML = '';
+
+            dadosEixos.forEach(({ eixo, dadosGrupos }) => {
+                const sec = document.createElement('div');
+                sec.innerHTML = `<div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider px-1 mb-1.5">${eixo}</div>`;
+
+                dadosGrupos.forEach(grupo => {
+                    const carro = grupo.lojas[0]?.Carro || '';
+                    const altura = grupo.lojas[0]?.Altura || '';
+                    const km = grupo.lojas[0]?.DistRotaKm || 0;
+
+                    let rows = grupo.lojas.map((l, i) => {
+                        const p = l.OrdemParada || i + 1;
+                        const nome = (l['Razao Social'] || '').split('-').slice(2).join('-').trim() || l.Filial;
+                        const hor = (l.Horario || '').split(',')[0].trim();
+                        return `<tr class="border-t border-slate-100">
+          <td class="py-1.5 pl-2 pr-1 text-center">
+            <span class="w-4 h-4 rounded-full text-white text-[8px] font-bold inline-flex items-center justify-center" style="background:${grupo.corObj.hex}">${p}</span>
+          </td>
+          <td class="py-1.5 px-1 text-[10px] font-semibold text-slate-700">${l.Filial}</td>
+          <td class="py-1.5 px-1 text-[10px] text-slate-600 max-w-[110px] truncate">${nome}</td>
+          <td class="py-1.5 px-1 text-[9px] text-slate-400">${l.UF}·${l.Cidade}</td>
+          <td class="py-1.5 pr-2 text-[9px] text-slate-400 text-right">${hor}</td>
+        </tr>`;
+                    }).join('');
+
+                    const card = document.createElement('div');
+                    card.className = 'border border-slate-200 bg-white rounded-xl overflow-hidden mb-2';
+                    card.innerHTML = `
+        <div class="flex items-center gap-2 px-3 py-2" style="background:${grupo.corObj.hex}">
+          <span class="text-white text-xs font-black">Grupo ${grupo.nomeGrupo}</span>
+          <span class="bg-white/25 text-white text-[9px] px-1.5 py-0.5 rounded-full">${carro} · ${altura}</span>
+          <span class="text-white/80 text-[9px] ml-auto">${grupo.lojas.length} paradas · ${km} km</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead><tr class="bg-slate-50">
+              <th class="py-1 text-[8px] font-bold text-slate-400 text-center">#</th>
+              <th class="py-1 text-[8px] font-bold text-slate-400 text-left px-1">Filial</th>
+              <th class="py-1 text-[8px] font-bold text-slate-400 text-left px-1">Loja</th>
+              <th class="py-1 text-[8px] font-bold text-slate-400 text-left px-1">Local</th>
+              <th class="py-1 text-[8px] font-bold text-slate-400 text-right pr-2">Horário</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+                    sec.appendChild(card);
+                });
+                painel.appendChild(sec);
+            });
+        }
+
+        // ─── Tabs click
+        function configurarTabs() {
+            document.querySelectorAll('.tab-resumo-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-resumo-btn').forEach(b => {
+                        b.classList.remove('bg-sky-500', 'text-white');
+                        b.classList.add('bg-slate-100', 'text-slate-600');
+                    });
+                    btn.classList.add('bg-sky-500', 'text-white');
+                    btn.classList.remove('bg-slate-100', 'text-slate-600');
+
+                    document.getElementById('painelVisaoGeral').classList.add('hidden');
+                    document.getElementById('painelPorEixo').classList.add('hidden');
+                    document.getElementById('painelItinerario').classList.add('hidden');
+
+                    if (btn.id === 'tabVisaoGeral') document.getElementById('painelVisaoGeral').classList.remove('hidden');
+                    if (btn.id === 'tabPorEixo') document.getElementById('painelPorEixo').classList.remove('hidden');
+                    if (btn.id === 'tabItinerario') document.getElementById('painelItinerario').classList.remove('hidden');
+                });
+            });
         }
 
         // ═══════════════════════════════════════════
@@ -506,9 +772,32 @@
                         html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${corHex}" stroke="white" stroke-width="1.5" width="28" height="28"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`,
                         className: '', iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -24]
                     });
-                    const m = L.marker(wp2.latLng, { icon, draggable: false })
-                        .bindPopup(`<div class="text-xs"><b>Parada ${loja.OrdemParada || i} — Grupo ${nomeGrupo}</b><br>${loja['Razao Social'] || ''}<br><span style="color:#64748b">${loja.Carro} · ${loja.Altura}</span></div>`)
-                        .bindTooltip(`Parada ${loja.OrdemParada || i} [G:${nomeGrupo}]`, { direction: 'top', sticky: true });
+                    const endCurto = (loja.Endereco || '').split(',')[0].trim();
+                    const horario = (loja.Horario || '').trim();
+                    const pegada = loja.Pegada || '';
+                    const popupHTML = `
+        <div style="font-family:ui-sans-serif,system-ui,sans-serif;min-width:200px">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+            <span style="background:${corHex};color:#fff;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:800">G${nomeGrupo} · #${loja.OrdemParada || i}</span>
+          </div>
+          <p style="font-weight:700;font-size:12px;color:#0f172a;margin:0 0 2px">${loja['Razao Social'] || ''}</p>
+          <p style="font-size:10px;color:#64748b;margin:0 0 6px">${endCurto}</p>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span style="background:#e2e8f0;color:#334155;border-radius:999px;padding:1px 7px;font-size:9px;font-weight:700">${loja.Carro}</span>
+            <span style="background:#fef9c3;color:#854d0e;border-radius:999px;padding:1px 7px;font-size:9px;font-weight:700">${loja.Altura}</span>
+            <span style="background:#f0fdf4;color:#166534;border-radius:999px;padding:1px 7px;font-size:9px;font-weight:600">Pegada ${pegada}</span>
+          </div>
+          ${horario ? `<p style="font-size:9px;color:#94a3b8;margin:5px 0 0">⏰ ${horario}</p>` : ''}
+        </div>`;
+                    const tooltipTxt = `${loja['Razao Social'] || loja.Filial} · ${loja.Carro} · ${loja.Altura}`;
+                    const m = L.marker(wp2.latLng, { icon, draggable: false, grupoId: nomeGrupo })
+                        .bindPopup(popupHTML, { maxWidth: 260 })
+                        .bindTooltip(tooltipTxt, {
+                            direction: 'top', sticky: false, offset: [0, -28],
+                            className: 'custom-route-tooltip'
+                        });
+                    m._grupoId = nomeGrupo;
+                    m._corHex = corHex;
                     marcadoresAtuais.push(m);
                     return m;
                 }
@@ -519,12 +808,40 @@
                 const km = (r.summary.totalDistance / 1000).toFixed(1);
                 const s = r.summary.totalTime, h = Math.floor(s / 3600), m = Math.round((s % 3600) / 60);
                 const tempo = h > 0 ? h + 'h ' + m + 'min' : m + 'min';
-                const resumo = `Grupo ${nomeGrupo}: ${km} km — ${tempo}`;
+                const resumo = `<b>Grupo ${nomeGrupo}</b>: ${km} km · ${tempo}`;
                 const coloridas = [];
                 mapa.eachLayer(layer => {
                     if (layer instanceof L.Polyline && !(layer instanceof L.Marker) && layer.options.color === corHex) {
                         coloridas.push(layer);
                         layer.bindTooltip(resumo, { sticky: true, className: 'custom-route-tooltip' });
+                        // ── Hover: destaque da rota ──────────────────────────────────
+                        layer.on('mouseover', function () {
+                            const { linha } = pesoParaZoom(mapa.getZoom());
+                            // Apagar outras rotas
+                            rotasPolylinesPorGrupo.forEach((obj, gId) => {
+                                obj.coloridas.forEach(p => {
+                                    if (gId !== nomeGrupo) p.setStyle({ opacity: 0.15, weight: Math.max(linha - 1, 1) });
+                                });
+                            });
+                            // Destacar esta
+                            coloridas.forEach(p => p.setStyle({ opacity: 1, weight: linha + 3 }));
+                            // Destacar marcadores deste grupo
+                            marcadoresAtuais.forEach(mk => {
+                                if (mk._grupoId === nomeGrupo) {
+                                    mk.setZIndexOffset(1000);
+                                } else {
+                                    mk.setOpacity(0.3);
+                                }
+                            });
+                        });
+                        layer.on('mouseout', function () {
+                            // Restaurar todas as rotas
+                            rotasPolylinesPorGrupo.forEach((obj) => {
+                                obj.coloridas.forEach(p => p.setStyle({ opacity: 0.9 }));
+                            });
+                            atualizarEspessura();
+                            marcadoresAtuais.forEach(mk => { mk.setOpacity(1); mk.setZIndexOffset(0); });
+                        });
                     }
                 });
                 rotasPolylinesPorGrupo.set(nomeGrupo, { bordas: [], coloridas });
@@ -544,6 +861,7 @@
         function resetSidebar() {
             document.getElementById('placeholderValidacao').classList.remove('hidden');
             document.getElementById('resumoContainer').classList.add('hidden');
+            document.getElementById('resumoTabs').classList.add('hidden');
         }
 
         // ═══════════════════════════════════════════
@@ -694,7 +1012,7 @@
             if (!novo || novo.trim() === atual) return;
             dadosPlanilha.forEach(l => { if (l.Corredor === atual) l.Corredor = novo.trim(); });
             if (corredorAtivoEditor === atual) corredorAtivoEditor = novo.trim();
-            renderTabs(); renderGrupos(); popularCorredores();
+            renderTabs(); renderGrupos(); popularEixos();
             toast('Corredor renomeado para "' + novo.trim() + '"');
         }
 
@@ -742,7 +1060,7 @@
         document.getElementById('btnAbrirEditor').addEventListener('click', abrirEditor);
         document.getElementById('btnFecharEditor').addEventListener('click', fecharEditor);
         document.getElementById('btnSalvarEditor').addEventListener('click', () => {
-            fecharEditor(); popularCorredores(); limparRotas(); resetSidebar();
+            fecharEditor(); popularEixos(); popularGrupos(); limparRotas(); resetSidebar();
             document.getElementById('corredorSelect').value = '';
             document.getElementById('grupoDropdownOpcoes').innerHTML = '';
             document.getElementById('grupoDropdownTexto').textContent = '2. Escolha os Grupos';
@@ -752,7 +1070,7 @@
         document.getElementById('btnNovoGrupo').addEventListener('click', criarNovoGrupo);
         document.getElementById('btnNovoCorredor').addEventListener('click', () => {
             const nome = prompt('Nome do novo corredor:');
-            if (nome && nome.trim()) { corredorAtivoEditor = nome.trim(); renderTabs(); renderGrupos(); popularCorredores(); toast('Corredor "' + nome.trim() + '" criado'); }
+            if (nome && nome.trim()) { corredorAtivoEditor = nome.trim(); renderTabs(); renderGrupos(); popularEixos(); toast('Corredor "' + nome.trim() + '" criado'); }
         });
         document.getElementById('btnExportarJSON').addEventListener('click', exportarJSON);
         document.getElementById('modalEditor').addEventListener('click', e => { if (e.target === document.getElementById('modalEditor')) fecharEditor(); });
@@ -760,8 +1078,9 @@
 
         window.onload = () => {
             initMap();
-            popularCorredores();
+            popularEixos();
             configurarDropdown();
+            configurarTabs();
             lucide.createIcons();
             console.log('App iniciado. dadosPlanilha:', dadosPlanilha.length, 'registros');
         };
