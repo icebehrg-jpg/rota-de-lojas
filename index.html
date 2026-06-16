@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roteirizador Inteligente | Galpão Jobim</title>
+    <title>Roteirizador Inteligente | CD - Barueri</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
@@ -265,7 +265,7 @@
         // ═══════════════════════════════════════════
         // CONFIG
         // ═══════════════════════════════════════════
-        const ORIGEM_GALPAO = { lat: -23.4905, lng: -46.8836, nome: "Galpão Jobim" };
+        const ORIGEM_GALPAO = { lat: -23.4905, lng: -46.8836, nome: "CD - Barueri" };
         const SERVIDORES_ROTA = [
             'https://router.project-osrm.org/route/v1',
             'https://routing.openstreetmap.de/routed-car/route/v1'
@@ -315,8 +315,8 @@
             L.control.layers(camadasMapa, null, { position: 'topright', collapsed: false }).addTo(mapa);
             L.marker([ORIGEM_GALPAO.lat, ORIGEM_GALPAO.lng])
                 .addTo(mapa)
-                .bindPopup('<b>Galpão Jobim</b><br>Ponto de partida')
-                .bindTooltip('Galpão Jobim', { direction: 'top', sticky: true })
+                .bindPopup('<b>CD - Barueri</b><br>Ponto de partida')
+                .bindTooltip('CD - Barueri', { direction: 'top', sticky: true })
                 .openPopup();
         }
 
